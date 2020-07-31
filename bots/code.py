@@ -36,12 +36,12 @@ def getAttachedImageUrls(tweet):
 
 
 #Have removed the following keys due to security reasons
-consumer_key= ""
-consumer_secret_key = ""
-access_token = ""
-access_token_secret = ""
+consumer_key= "####"
+consumer_secret_key = "####"
+access_token = "##############"
+access_token_secret = "#########"
 
-since_id = -1 
+
 
 
 
@@ -113,7 +113,7 @@ def check_mentions(api, since_id):
             attachments.append(loc)
             
         receiver = emailAddress
-        
+        print("receiver: " , receiver)
         emailStatus = False
         emailStatus = sendMailWithAttachments(receiver, attachments, parent_tweet._json['full_text'])
 
@@ -137,13 +137,40 @@ def check_mentions(api, since_id):
     #return since_id
     return cnt
 
-def  main():
+def getVal(filename, section, key):
+
+    config = configparser.ConfigParser()
+    config.read(filename)
+    return config[section][key]
+
+def setVal(filename, section, key,  val):
     
+    config = configparser.ConfigParser()
+    config[section] = {}
+    config[section][key] = val
+    
+    with open(filename, 'w') as configfile:
+        config.write(configfile)
+
+def main():
+    
+    filename = 'config.ini'
+   
+    #initializeCredentials(filename, 'tweepy')
+   
+    since_id = int(getVal(filename, 'tweepy' ,'since_id'))
+    
+    print('access_token: ', access_token)
+    print('access_token_secret: ', access_token_secret)
+    print('consumer_key: ', consumer_key)
+    print('consumer_secret_key: ', consumer_secret_key)
+
     logger= logging.getLogger()
 
-    since_id = 1
+    
 
     while True: 
+        
         auth = tweepy.OAuthHandler(consumer_key, consumer_secret_key)
         auth.set_access_token(access_token, access_token_secret)
 
@@ -156,24 +183,22 @@ def  main():
             logger.info('Authentication successful')
         except Exception as e:
             logger.error('Error creating API')
+            logger.error(f'errror -> {e}')
     
         
         print('Old since_id: ' , since_id)
 
         since_id  = check_mentions(api, since_id)
-            
-        print('New since_id: ', since_id)
+        
+        setVal(filename, 'tweepy' , 'since_id' , f'{since_id}')
 
-        #check_mentions(api, 1)
+        print('New since_id: ', since_id)
 
         time.sleep(30)          
         
-        #:setSinceID('config.ini' , '100')
-
-
+        
 if __name__ == "__main__":
     main()
-
 
 
 
